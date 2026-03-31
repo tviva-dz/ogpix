@@ -1,6 +1,6 @@
-import { OGConfig } from '@/lib/types'
+import { GenericProps } from '@/lib/types'
 
-export function BasicTemplate({ title, description, siteName }: OGConfig) {
+export function BasicTemplate({ title, subtitle: description }: GenericProps) {
   return (
     <div
       style={{
@@ -15,21 +15,19 @@ export function BasicTemplate({ title, description, siteName }: OGConfig) {
         fontFamily: 'sans-serif',
       }}
     >
-      {siteName && (
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 16,
-            fontWeight: 600,
-            color: '#a78bfa',
-            marginBottom: 16,
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-          }}
-        >
-          {siteName}
-        </div>
-      )}
+      <div
+        style={{
+          display: 'flex',
+          fontSize: 16,
+          fontWeight: 600,
+          color: '#a78bfa',
+          marginBottom: 16,
+          textTransform: 'uppercase',
+          letterSpacing: 2,
+        }}
+      >
+        OGPix
+      </div>
       <div
         style={{
           display: 'flex',

@@ -1,73 +1,92 @@
-import { ImageResponse } from '@vercel/og'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { renderImage } from '@/lib/render'
+import { TemplateProps, OutputSize, RenderOptions } from '@/lib/types'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
+
+function parseFeatures(raw: string | null): string[] | undefined {
+  if (!raw) return undefined
+  return raw.split('|').map((s) => s.trim()).filter(Boolean)
+}
+
+function buildTemplateProps(params: URLSearchParams): TemplateProps {
+  const template = params.get('template') ?? 'generic'
+
+  switch (template) {
+    case 'blog-cover':
+      return {
+        template: 'blog-cover',
+        title: params.get('title') ?? 'Untitled',
+        subtitle: params.get('subtitle') ?? undefined,
+        author: params.get('author') ?? undefined,
+        theme: params.get('theme') ?? undefined,
+      }
+    case 'product-launch':
+      return {
+        template: 'product-launch',
+        productName: params.get('productName') ?? params.get('title') ?? 'Product',
+        tagline: params.get('tagline') ?? params.get('subtitle') ?? undefined,
+        features: parseFeatures(params.get('features')),
+        theme: params.get('theme') ?? undefined,
+      }
+    case 'podcast-episode':
+      return {
+        template: 'podcast-episode',
+        showName: params.get('showName') ?? params.get('title') ?? 'My Podcast',
+        episodeTitle: params.get('episodeTitle') ?? params.get('subtitle') ?? 'Episode',
+        episodeNumber: params.get('episodeNumber') ? Number(params.get('episodeNumber')) : undefined,
+        theme: params.get('theme') ?? undefined,
+      }
+    case 'event':
+      return {
+        template: 'event',
+        eventName: params.get('eventName') ?? params.get('title') ?? 'Event',
+        date: params.get('date') ?? undefined,
+        location: params.get('location') ?? undefined,
+        speaker: params.get('speaker') ?? undefined,
+        theme: params.get('theme') ?? undefined,
+      }
+    case 'github-card':
+      return {
+        template: 'github-card',
+        repoName: params.get('repoName') ?? params.get('title') ?? 'repo',
+        description: params.get('description') ?? params.get('subtitle') ?? undefined,
+        stars: params.get('stars') ? Number(params.get('stars')) : undefined,
+        forks: params.get('forks') ? Number(params.get('forks')) : undefined,
+        language: params.get('language') ?? undefined,
+        theme: params.get('theme') ?? undefined,
+      }
+    default:
+      return {
+        template: 'generic',
+        title: params.get('title') ?? 'Hello World',
+        subtitle: params.get('subtitle') ?? undefined,
+        theme: params.get('theme') ?? undefined,
+      }
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const title = searchParams.get('title') ?? 'Hello World'
-  const description = searchParams.get('description') ?? ''
-  const template = searchParams.get('template') ?? 'basic'
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-end',
-          width: '100%',
-          height: '100%',
-          padding: '60px',
-          background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
-          fontFamily: 'sans-serif',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 16,
-            fontWeight: 600,
-            color: '#a78bfa',
-            marginBottom: 16,
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-          }}
-        >
-          OGPix
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 64,
-            fontWeight: 700,
-            color: 'white',
-            lineHeight: 1.1,
-            marginBottom: 24,
-            maxWidth: 900,
-          }}
-        >
-          {title}
-        </div>
-        {description && (
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 28,
-              color: '#9ca3af',
-              maxWidth: 800,
-              lineHeight: 1.5,
-            }}
-          >
-            {description}
-          </div>
-        )}
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-    }
-  )
+  const templateProps = buildTemplateProps(searchParams)
+  const size = (searchParams.get('size') ?? 'og') as OutputSize
+  const format = (searchParams.get('format') ?? 'png') as 'png' | 'jpeg'
+
+  const options: RenderOptions = { size, format, quality: 90 }
+
+  try {
+    const buffer = await renderImage(templateProps, options)
+    const contentType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
+
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+      },
+    })
+  } catch (err) {
+    console.error('OG render error:', err)
+    return NextResponse.json({ error: 'Failed to render image' }, { status: 500 })
+  }
 }
