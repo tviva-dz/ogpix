@@ -1,6 +1,8 @@
 import satori from 'satori'
 import sharp from 'sharp'
 import { createElement } from 'react'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { TemplateProps, RenderOptions, OUTPUT_SIZES } from './types'
 import { BlogCoverTemplate } from './templates/blog-cover'
 import { ProductLaunchTemplate } from './templates/product-launch'
@@ -9,15 +11,13 @@ import { EventTemplate } from './templates/event'
 import { GitHubCardTemplate } from './templates/github-card'
 import { GenericTemplate } from './templates/generic'
 
-// Fetch Inter font from Google Fonts for Satori
-async function loadInterFont() {
-  const [regular, bold] = await Promise.all([
-    fetch('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff').then((r) => r.arrayBuffer()),
-    fetch('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff').then((r) => r.arrayBuffer()),
-  ])
+// Load Inter font from local files (avoids runtime network fetch failures on Vercel)
+function loadInterFont() {
+  const regular = readFileSync(join(process.cwd(), 'assets/fonts/Inter-Regular.woff'))
+  const bold = readFileSync(join(process.cwd(), 'assets/fonts/Inter-Bold.woff'))
   return [
-    { name: 'Inter', data: regular, weight: 400 as const, style: 'normal' as const },
-    { name: 'Inter', data: bold, weight: 700 as const, style: 'normal' as const },
+    { name: 'Inter', data: regular.buffer.slice(regular.byteOffset, regular.byteOffset + regular.byteLength), weight: 400 as const, style: 'normal' as const },
+    { name: 'Inter', data: bold.buffer.slice(bold.byteOffset, bold.byteOffset + bold.byteLength), weight: 700 as const, style: 'normal' as const },
   ]
 }
 
@@ -49,7 +49,7 @@ export async function renderImage(
   const { size = 'og', format = 'png', quality = 90 } = options
   const { width, height } = OUTPUT_SIZES[size]
 
-  const fonts = await loadInterFont()
+  const fonts = loadInterFont()
 
   const svg = await satori(resolveTemplate(props), {
     width,

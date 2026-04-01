@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@vercel/og": "^0.6.3",
     "next": "14.2.29",
     "react": "^18",
