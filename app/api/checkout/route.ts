@@ -21,9 +21,7 @@ export async function GET(req: NextRequest) {
 
   // Dynamic import so the module only loads when Stripe is configured
   const Stripe = (await import('stripe')).default
-  // Use Node.js native https client to avoid Next.js fetch patching interference
   const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: '2026-03-25.dahlia' as const,
     httpClient: Stripe.createNodeHttpClient(),
   })
 
