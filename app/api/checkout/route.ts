@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
 
   const email = new URL(req.url).searchParams.get('email') ?? undefined
 
-  // Dynamic import so the module only loads when Stripe is configured
   const Stripe = (await import('stripe')).default
   const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    httpClient: Stripe.createNodeHttpClient(),
+    maxNetworkRetries: 1,
+    timeout: 8000,
   })
 
   try {
