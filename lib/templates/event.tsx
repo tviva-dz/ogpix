@@ -53,7 +53,7 @@ export function EventTemplate({ eventName, date, location, speaker, theme: theme
             borderRadius: '4px',
             textTransform: 'uppercase',
             letterSpacing: '2px',
-            width: 'fit-content',
+            alignSelf: 'flex-start',
             marginBottom: '40px',
           }}
         >

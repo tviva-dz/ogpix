@@ -38,7 +38,7 @@ export function ProductLaunchTemplate({ productName, tagline, features, theme: t
             borderRadius: '999px',
             textTransform: 'uppercase',
             letterSpacing: '2px',
-            width: 'fit-content',
+            alignSelf: 'flex-start',
             marginBottom: '24px',
           }}
         >
