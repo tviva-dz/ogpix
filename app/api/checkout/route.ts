@@ -23,14 +23,22 @@ export async function GET(req: NextRequest) {
   const Stripe = (await import('stripe')).default
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' as const })
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    line_items: [{ price: STRIPE_PRO_PRICE_ID, quantity: 1 }],
-    customer_email: email,
-    success_url: `${APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${APP_URL}/#pricing`,
-    metadata: { source: 'ogpix' },
-  })
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price: STRIPE_PRO_PRICE_ID, quantity: 1 }],
+      customer_email: email,
+      success_url: `${APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${APP_URL}/#pricing`,
+      metadata: { source: 'ogpix' },
+    })
 
-  return NextResponse.redirect(session.url!)
+    return NextResponse.redirect(session.url!)
+  } catch (err) {
+    console.error('Stripe checkout error:', err)
+    return NextResponse.json(
+      { error: 'Checkout failed', message: String(err) },
+      { status: 500 }
+    )
+  }
 }
