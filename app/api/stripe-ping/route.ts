@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 
 export async function GET() {
-  const key = process.env.STRIPE_SECRET_KEY?.trim()
+  const key = process.env.STRIPE_SECRET_KEY?.replace(/\\n/g, '').trim()
   if (!key) return NextResponse.json({ error: 'No key' }, { status: 503 })
 
   try {

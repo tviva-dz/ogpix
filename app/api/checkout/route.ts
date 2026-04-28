@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim()
-const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID?.trim()
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.replace(/\\n/g, '').trim()
+const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID?.replace(/\\n/g, '').trim()
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\\n/g, '').trim()
 
 export async function GET(req: NextRequest) {
   if (!STRIPE_SECRET_KEY || !STRIPE_PRO_PRICE_ID) {
